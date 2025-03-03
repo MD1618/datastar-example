@@ -1,0 +1,94 @@
+{% set search = signals.search ?? null %}
+{% set category = signals.category ?? null %}
+{% set page = signals.page ?? 1 %}
+{% set pageOffset = (page - 1) * 12 ?? 0 %}
+
+{% set entryQueryInit = craft.entries.section("news") %}
+{% set entryQuery = entryQueryInit.offset(pageOffset).limit(12).with(craft.app.config.custom.relatedPageEagerLoadElements) %}
+
+{# initialise showClearFilters #}
+{% set showClearFilters = false %}
+
+{# add search term to entry query #}
+{% if search %}
+    {% do entryQuery.search(search) %}
+    {% set showClearFilters = true %}
+{% endif %}
+
+{# add relatedTo items to entry query #}
+{% set relatedToEntries = [] %}
+
+{# add category dropdown to relatedToEntries #}
+{% if category %}
+    {% set categoryEntry = category ? craft.entries.section('categories').slug(category).one() : null %}
+    {% set relatedToEntries = category ? relatedToEntries|push(categoryEntry) : relatedEntries %}
+    {% set showClearFilters = true %}
+{% endif %}
+
+{# example extra filter #}
+{# {% if location %}
+    {% set locationEntry = location ? craft.entries.section('categories').slug(location).one() : null %}
+    {% set relatedToEntries = location ? relatedToEntries|push(locationEntry) : relatedEntries %}
+    {% set showClearFilters = true %}
+{% endif %} #}
+
+{# add relatedToEntries to entry query #}
+{% if relatedToEntries %}
+    {% do entryQuery.relatedTo(relatedToEntries) %}
+{% endif %}
+
+{# get results and paginate #}
+{% paginate entryQuery as pageInfo, entries %}
+
+
+{# fragments #}
+{% fragment %}
+    <div id="results-info">Page {{ page }} of {{ entryQueryInit|length }} {{ 'result'|pluralize(entryQueryInit|length) }}</div>
+{% endfragment %}
+
+{% set urlPaginated = page == 1 ? url('news') ~ craft.misc.buildQueryString({ search: search, category: category }) : url('news') ~ "/p" ~ page ~ craft.misc.buildQueryString({ search: search, category: category }) %}
+
+{% fragment %}
+    <div class="grid gap-8 md:grid-cols-3" id="results" data-replace-url="`{{ urlPaginated }}`">
+        {% for _entry in entries %}
+            {% include "/site/includes/cards/layouts/default.twig" %}
+        {% else %}
+            <div class="col-span-full">
+                <p>No results found</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endfragment %}
+
+
+{# JS #}
+{% if page == 1 and pageInfo.totalPages == 1 %}
+    {% executescript %}
+        const paginationEl = document.querySelector('#pagination');
+        paginationEl.classList.add('!hidden');
+    {% endexecutescript %}
+{% elseif pageInfo.totalPages > 1 %}
+    {% executescript %}
+        const paginationEl = document.querySelector('#pagination');
+        paginationEl.classList.remove('!hidden');
+    {% endexecutescript %}
+{% endif %}
+
+{% if search != '' or category != '' %}
+    {% executescript %}
+        const clearFiltersEl = document.querySelector('#clear-filters');
+        clearFiltersEl.classList.remove('!hidden');
+    {% endexecutescript %}
+{% else %}
+    {% executescript %}
+        const clearFiltersEl = document.querySelector('#clear-filters');
+        clearFiltersEl.classList.add('!hidden');
+    {% endexecutescript %}
+{% endif %}
+
+{# scroll to filters after loading results #}
+{# docs don't make sense so doing it this way for now #}
+{% executescript %}
+    const resultsContainer = document.querySelector('#results-page');
+    resultsContainer.scrollIntoView({ behavior: 'smooth' });
+{% endexecutescript %}
