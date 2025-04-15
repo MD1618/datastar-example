@@ -25,13 +25,6 @@
     {% set showClearFilters = true %}
 {% endif %}
 
-{# example extra filter #}
-{# {% if location %}
-    {% set locationEntry = location ? craft.entries.section('categories').slug(location).one() : null %}
-    {% set relatedToEntries = location ? relatedToEntries|push(locationEntry) : relatedEntries %}
-    {% set showClearFilters = true %}
-{% endif %} #}
-
 {# add relatedToEntries to entry query #}
 {% if relatedToEntries %}
     {% do entryQuery.relatedTo(relatedToEntries) %}
@@ -39,7 +32,6 @@
 
 {# get results and paginate #}
 {% paginate entryQuery as pageInfo, entries %}
-
 
 {# fragments #}
 {% fragment %}
@@ -59,7 +51,6 @@
         {% endfor %}
     </div>
 {% endfragment %}
-
 
 {# JS #}
 {% if page == 1 and pageInfo.totalPages == 1 %}
@@ -87,7 +78,6 @@
 {% endif %}
 
 {# scroll to filters after loading results #}
-{# docs don't make sense so doing it this way for now #}
 {% executescript %}
     const resultsContainer = document.querySelector('#results-page');
     resultsContainer.scrollIntoView({ behavior: 'smooth' });

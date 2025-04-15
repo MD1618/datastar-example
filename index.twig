@@ -19,10 +19,6 @@
     {% endif %}
 {% endmacro %}
 
-{#
-params passed in from the parent template
-remember to add any new filters here
-#}
 {% set sectionHandle = sectionHandle ?? null %}
 {% set limit = limit ?? 12 %}
 
@@ -53,64 +49,17 @@ remember to add any new filters here
     {% set showClearFilters = true %}
 {% endif %}
 
-{# example extra filter #}
-{# {% if location %}
-    {% set locationEntry = location ? craft.entries.section('categories').slug(location).one() : null %}
-    {% set relatedToEntries = location ? relatedToEntries|push(locationEntry) : relatedEntries %}
-    {% set showClearFilters = true %}
-{% endif %} #}
-
 {# add relatedToEntries to entry query #}
 {% if relatedToEntries %}
     {% do entryQuery.relatedTo(relatedToEntries) %}
 {% endif %}
 
-{#
-update URL with query string
-remember to add any new filters here
-#}
-{# {% do sprig.pushUrl(craft.misc.buildQueryString({
-    search: search,
-    category: category,
-    page: page
-})) %} #}
-
 {# get results and paginate #}
-{# {% set pageInfo = sprig.paginate(entryQuery, page) %} #}
 {% paginate entryQuery as pageInfo, entries %}
-{#
-common sprig attributes:
-- s-replace: inject the #results content into #results
-- s-indicator: add the loading indicator class to #results
-- s-sync: cancel previous sprig requests when a new one is made
-- s-swap: show the top of the page when the results are updated
-#}
-{# {% set sprigAttributes = {
-    "s-replace" : "#results-page",
-    "s-indicator" : "#results",
-    "s-sync": "#results-page:replace",
-    's-swap': 'show:top'
-} %} #}
 
 {% set datastarQuery = datastar.get('site/_datastar/search.twig') %}
 
-{# ========================
-===========================
-finally some actual markup
-===========================
-======================== #}
-
-{# <button id="test" class="" data-on-click="{{ datastar.post('/actions/misc/datastar/testing') }}">test</button> #}
-
 <div class="scroll-mt-0" id="results-page" data-signals="{page: {{ pageInfo.currentPage }}, search: '{{ search }}', category: '{{ category }}'}">
-
-{# <pre data-text="ctx.signals.JSON()">Replace me</pre> #}
-
-    {#
-    =======
-    filters
-    =======
-    #}
     <div class="py-8 bg-grey-200">
         <div class="container">
             <div class="flex flex-col gap-6 md:flex-row flex-nowrap form">
@@ -127,21 +76,12 @@ finally some actual markup
                     >
                 </div>
 
-                {# category dropdown #}
                 {{ _self.selectFilter(
                     'category',
                     'Category',
                     craft.misc.getUsedCategories('categories', sectionHandle),
                     category,
                 ) }}
-
-                {# example extra filter #}
-                {# {{ _self.selectFilter(
-                    'location',
-                    'Location',
-                    craft.misc.getUsedCategories('locations', sectionHandle),
-                    location,
-                ) }} #}
 
                 <div class="mt-auto">
                     <button class="w-auto font-semibold btn btn-grey-dark btn-filter" data-on-click="$page = 1;{{ datastarQuery }}">
@@ -151,14 +91,7 @@ finally some actual markup
             </div>
 
             <div class="flex justify-between w-full mt-6 type-sm">
-                {# total results #}
                 <div id="results-info">Page {{ pageInfo.currentPage }} of {{ pageInfo.total }} {{ 'result'|pluralize(pageInfo.total) }}</div>
-
-                {#
-                pass query params to be reset
-                remember to add any new filters here
-                #}
-
                     <button
                         id="clear-filters"
                         class="flex items-center cursor-pointer {{ showClearFilters ? "" : "!hidden" }}"
@@ -171,19 +104,12 @@ finally some actual markup
         </div>
     </div>
 
-
-
-    {#
-    =======
-    results
-    =======
-    #}
-    <div class="container relative group">
-        <div class="group-[.htmx-request]:opacity-10 opacity-100 transition-opacity py-12">
+    <div class="container relative">
+        <div class="py-12">
             {# cards #}
             <div class="grid gap-8 md:grid-cols-3" id="results">
                 {% for _entry in entries %}
-                    {% include "/site/includes/cards/layouts/default.twig" %}
+                    {% include "card.twig" %}
                 {% else %}
                     <div class="col-span-full">
                         <p>No results found</p>
@@ -192,8 +118,6 @@ finally some actual markup
             </div>
         </div>
 
-        {% include "site/includes/pagination" %}
-
-        {% include "site/includes/loading-indicator" %}
+        {% include "pagination" %}
     </div>
 </div>

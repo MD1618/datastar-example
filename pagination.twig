@@ -1,0 +1,46 @@
+{% set pageInfo = pageInfo ?? null %}
+
+<div class="mb-12 pagination {% if pageInfo.totalPages == 1 %}!hidden{% endif %}" id="pagination">
+    {# previous page button #}
+    <button class="flex items-center px-3 btn btn-grey-dark lg:px-5" data-on-click="$page = $page > 1 ? $page - 1 : 1;{{ datastarQuery }}">
+        <span class="inline-block w-6">
+            {{ svg("@webroot/assets/img/svg/arrow-left.svg") }}
+        </span>
+        <span class="ml-2 font-semibold sr-only lg:ml-2 lg:not-sr-only">{{ 'Previous'|t }}</span>
+    </button>
+
+    {# pages dropdown #}
+    <div class="flex items-center">
+        <span class="block !mr-3 sr-only sm:not-sr-only text-grey-700">{{ 'Page'|t }}</span>
+
+        <select
+            class="mr-3 font-bold pagination__select"
+            name="page"
+            aria-label="page"
+            id="page-select"
+            data-bind="$page"
+            data-on-change="{{ datastarQuery }}"
+        >
+            {% for pageNumber in (1..pageInfo.totalPages) %}
+                <option
+                    value="{{ pageNumber }}"
+                    {% if pageInfo.currentPage == pageNumber %}selected{% endif %}
+                >{{ pageNumber }}</option>
+            {% endfor %}
+        </select>
+
+        <span class="mr-3 text-grey-700">{{ 'of'|t }}</span>
+        <span class="text-grey-700">{{ pageInfo.totalPages }}</span>
+    </div>
+
+    {# next page button #}
+    <button class="flex items-center px-3 btn btn-grey-dark lg:px-5"
+        data-on-click="$page = $page < {{ pageInfo.totalPages }} ? $page + 1 : {{ pageInfo.totalPages }};{{ datastarQuery }}"
+        >
+        <span class="mr-2 font-semibold sr-only lg:mr-2 lg:not-sr-only">{{ 'Next'|t }}</span>
+
+        <span class="block w-6">
+            {{ svg("@webroot/assets/img/svg/arrow-right.svg") }}
+        </span>
+    </button>
+</div>
